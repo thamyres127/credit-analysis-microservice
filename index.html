@@ -1,58 +1,145 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse
-from pydantic import BaseModel, Field
-import os
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Crédito Automotivo</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f1f5f9; color: #0f172a; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { background-color: #ffffff; padding: 35px; border-radius: 16px; width: 100%; max-width: 450px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        h2 { margin-bottom: 25px; text-align: center; color: #0284c7; font-size: 24px; font-weight: 600; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; margin-bottom: 6px; font-size: 14px; color: #64748b; font-weight: 500; }
+        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; background-color: #f8fafc; color: #0f172a; font-size: 16px; outline: none; transition: border-color 0.2s; }
+        input:focus, select:focus { border-color: #0284c7; background-color: #ffffff; }
+        button { width: 100%; padding: 14px; background-color: #0284c7; border: none; border-radius: 8px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: background-color 0.2s; }
+        button:hover { background-color: #0369a1; }
+        .resultado { margin-top: 25px; padding: 16px; border-radius: 8px; display: none; font-size: 15px; line-height: 1.6; }
+        .aprovado { background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+        .reprovado { background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+        .alerta-backend { font-size: 11px; color: #64748b; background-color: #f8fafc; padding: 8px; border-radius: 6px; border: 1px dashed #cbd5e1; margin-top: 15px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Análise de Crédito</h2>
+        <div class="form-group">
+            <label>Renda Mensal (R$)</label>
+            <input type="number" id="renda_mensal" placeholder="Ex: 3500">
+        </div>
+        <div class="form-group">
+            <label>Valor do Veículo (R$)</label>
+            <input type="number" id="valor_veiculo" placeholder="Ex: 50000">
+        </div>
+        <div class="form-group">
+            <label>Valor da Entrada (R$)</label>
+            <input type="number" id="valor_entrada" placeholder="Ex: 10000">
+        </div>
+        <div class="form-group">
+            <label>Quantidade de Parcelas</label>
+            <select id="parcelas">
+                <option value="12">12x</option>
+                <option value="24">24x</option>
+                <option value="36">36x</option>
+                <option value="48">48x</option>
+                <option value="60">60x</option>
+            </select>
+        </div>
+        <button onclick="enviarSimulacao()">Simular Financiamento</button>
+        <div id="resultado" class="resultado"></div>
+        <div class="alerta-backend">
+            💡 Nota de Portfólio: Este front-end consome uma API em Python (FastAPI). No GitHub Pages, a lógica roda em modo de simulação local via JavaScript.
+        </div>
+    </div>
 
-app = FastAPI(
-    title="Microsserviço de Análise de Crédito Automotivo",
-    description="API para simulação e avaliação de risco de financiamento veicular com interface visual.",
-    version="1.1.0"
-)
-
-class SimularCreditoRequest(BaseModel):
-    renda_mensal: float = Field(..., gt=0)
-    valor_veiculo: float = Field(..., gt=0)
-    valor_entrada: float = Field(..., ge=0)
-    parcelas: int = Field(..., description="12, 24, 36, 48, 60")
-
-# Buscando o index.html direto na raiz do projeto
-@app.get("/", response_class=HTMLResponse, tags=["Front-End"])
-async def abrir_interface():
-    caminho_html = "index.html"
-    if not os.path.exists(caminho_html):
-        return "<h1>Erro: Arquivo index.html não foi encontrado na raiz!</h1>"
-    with open(caminho_html, "r", encoding="utf-8") as arquivo:
-        return arquivo.read()
-
-# Rota do Processamento do Back-End (API)
-@app.post("/api/v1/simulacao", tags=["Análise de Crédito"])
-async def simular_credito(dados: SimularCreditoRequest):
-    entrada_minima = dados.valor_veiculo * 0.20
-    if dados.valor_entrada < entrada_minima:
-        return {
-            "status": "REPROVADO",
-            "motivo": f"Valor de entrada insuficiente. O valor mínimo exigido é de R$ {entrada_minima:,.2f} (20% do veículo)."
+    <script>
+        // Função com a lógica espelho do Back-end para rodar direto no navegador se o Python estiver desligado
+        function processarSimulacaoLocal(dados) {
+            const entradaMinima = dados.valor_veiculo * 0.20;
+            if (dados.valor_entrada < entradaMinima) {
+                return {
+                    status: "REPROVADO",
+                    motivo: `Valor de entrada insuficiente. O valor mínimo exigido é de R$ ${entradaMinima.toLocaleString('pt-BR', {minimumFractionDigits: 2})} (20% do veículo).`
+                };
+            }
+            
+            const valorFinanciar = dados.valor_veiculo - dados.valor_entrada;
+            const taxaJurosMensal = 0.015; // 1.5% ao mês
+            
+            const fator = Math.pow((1 + taxaJurosMensal), dados.parcelas);
+            const valorParcela = valorFinanciar * (taxa_juros_mensal * fator) / (fator - 1);
+                
+            const limiteComprometimento = dados.renda_mensal * 0.30;
+            if (valorParcela > limiteComprometimento) {
+                return {
+                    status: "REPROVADO",
+                    motivo: `Parcela de R$ ${valorParcela.toLocaleString('pt-BR', {minimumFractionDigits: 2})} ultrapassa o limite de 30% da sua renda mensal (R$ ${limiteComprometimento.toLocaleString('pt-BR', {minimumFractionDigits: 2})}).`
+                };
+            }
+                
+            return {
+                status: "APROVADO",
+                detalhes: {
+                    valor_financiado: valorFinanciar,
+                    quantidade_parcelas: dados.parcelas,
+                    valor_parcela: valorParcela,
+                    taxa_applied_mes: "1.5%"
+                }
+            };
         }
-    
-    valor_financiar = dados.valor_veiculo - dados.valor_entrada
-    taxa_juros_mensal = 0.015
-    
-    fator = (1 + taxa_juros_mensal) ** dados.parcelas
-    valor_parcela = valor_financiar * (taxa_juros_mensal * factor) / (fator - 1) if dados.parcelas > 0 else 0
-        
-    limite_comprometimento = dados.renda_mensal * 0.30
-    if valor_parcela > limite_comprometimento:
-        return {
-            "status": "REPROVADO",
-            "motivo": f"Parcela de R$ {valor_parcela:,.2f} ultrapassa o limite de 30% da sua renda mensal (R$ {limite_comprometimento:,.2f})."
+
+        async function enviarSimulacao() {
+            const dados = {
+                renda_mensal: parseFloat(document.getElementById('renda_mensal').value),
+                valor_veiculo: parseFloat(document.getElementById('valor_veiculo').value),
+                valor_entrada: parseFloat(document.getElementById('valor_entrada').value),
+                parcelas: parseInt(document.getElementById('parcelas').value)
+            };
+
+            if (isNaN(dados.renda_mensal) || isNaN(dados.valor_veiculo) || isNaN(dados.valor_entrada)) {
+                alert('Por favor, preencha todos os campos com valores válidos.');
+                return;
+            }
+
+            const divResultado = document.getElementById('resultado');
+            divResultado.style.display = 'none';
+
+            try {
+                // Tenta chamar o Back-end em Python
+                const response = await fetch('/api/v1/simulacao', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dados)
+                });
+                
+                if (!response.ok) throw new Error('Servidor offline');
+                const res = await response.json();
+                renderizarResultado(res);
+                
+            } catch (error) {
+                // Se o servidor Python não responder (como no GitHub Pages), a lógica local assume o controle!
+                console.log('Executando em modo de demonstração local (GitHub Pages).');
+                const resLocal = processarSimulacaoLocal(dados);
+                renderizarResultado(resLocal);
+            }
         }
-        
-    return {
-        "status": "APROVADO",
-        "detalhes": {
-            "valor_financiado": round(valor_financiar, 2),
-            "quantidade_parcelas": dados.parcelas,
-            "valor_parcela": round(valor_parcela, 2),
-            "taxa_aplicada_mes": "1.5%"
+
+        function renderizarResultado(res) {
+            const divResultado = document.getElementById('resultado');
+            if (res.status === 'APROVADO') {
+                divResultado.className = 'resultado aprovado';
+                divResultado.innerHTML = `<strong>🎉 CRÉDITO APROVADO!</strong><br><br>
+                    • Valor Financiado: R$ ${res.detalhes.valor_financiado.toLocaleString('pt-BR', {minimumFractionDigits: 2})}<br>
+                    • Parcelas: ${res.detalhes.quantidade_parcelas}x de <strong>R$ ${res.detalhes.valor_parcela.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong><br>
+                    • Taxa de Juros: ${res.detalhes.taxa_applied_mes} ao mês`;
+            } else {
+                divResultado.className = 'resultado reprovado';
+                divResultado.innerHTML = `<strong>❌ CRÉDITO RECUSADO</strong><br><br>${res.motivo}`;
+            }
+            divResultado.style.display = 'block';
         }
-    }
+    </script>
+</body>
+</html>
+
