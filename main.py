@@ -1,0 +1,58 @@
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, Field
+import os
+
+app = FastAPI(
+    title="Microsserviço de Análise de Crédito Automotivo",
+    description="API para simulação e avaliação de risco de financiamento veicular com interface visual.",
+    version="1.1.0"
+)
+
+class SimularCreditoRequest(BaseModel):
+    renda_mensal: float = Field(..., gt=0)
+    valor_veiculo: float = Field(..., gt=0)
+    valor_entrada: float = Field(..., ge=0)
+    parcelas: int = Field(..., description="12, 24, 36, 48, 60")
+
+# Buscando o index.html direto na raiz do projeto
+@app.get("/", response_class=HTMLResponse, tags=["Front-End"])
+async def abrir_interface():
+    caminho_html = "index.html"
+    if not os.path.exists(caminho_html):
+        return "<h1>Erro: Arquivo index.html não foi encontrado na raiz!</h1>"
+    with open(caminho_html, "r", encoding="utf-8") as arquivo:
+        return arquivo.read()
+
+# Rota do Processamento do Back-End (API)
+@app.post("/api/v1/simulacao", tags=["Análise de Crédito"])
+async def simular_credito(dados: SimularCreditoRequest):
+    entrada_minima = dados.valor_veiculo * 0.20
+    if dados.valor_entrada < entrada_minima:
+        return {
+            "status": "REPROVADO",
+            "motivo": f"Valor de entrada insuficiente. O valor mínimo exigido é de R$ {entrada_minima:,.2f} (20% do veículo)."
+        }
+    
+    valor_financiar = dados.valor_veiculo - dados.valor_entrada
+    taxa_juros_mensal = 0.015
+    
+    fator = (1 + taxa_juros_mensal) ** dados.parcelas
+    valor_parcela = valor_financiar * (taxa_juros_mensal * fator) / (fator - 1) if dados.parcelas > 0 else 0
+        
+    limite_comprometimento = dados.renda_mensal * 0.30
+    if valor_parcela > limite_comprometimento:
+        return {
+            "status": "REPROVADO",
+            "motivo": f"Parcela de R$ {valor_parcela:,.2f} ultrapassa o limite de 30% da sua renda mensal (R$ {limite_comprometimento:,.2f})."
+        }
+        
+    return {
+        "status": "APROVADO",
+        "detalhes": {
+            "valor_financiado": round(valor_financiar, 2),
+            "quantidade_parcelas": dados.parcelas,
+            "valor_parcela": round(valor_parcela, 2),
+            "taxa_aplicada_mes": "1.5%"
+        }
+    }
