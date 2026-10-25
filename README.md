@@ -1,48 +1,68 @@
 # 🚀 Microsserviço de Simulação e Análise de Crédito Automotivo
 
-Este é um microsserviço full-stack focado no setor financeiro e bancário, desenvolvido para automatizar o processo de simulação de financiamento veicular e avaliação de risco de crédito em tempo real. 
+Este é um projeto full-stack focado no ecossistema financeiro e bancário, desenvolvido para simular a esteira automatizada de aprovação e análise de risco para financiamento veicular. 
 
-A aplicação valida parâmetros rigorosos de entrada, calcula taxas de juros compostos sobre o saldo financiado e analisa o comprometimento de renda do cliente com base em regras de negócio reais do mercado de crédito.
-
----
-
-## 🛠️ Tecnologias e Ferramentas Utilizadas
-
-### Back-End
-* **Python**: Linguagem core para construção de scripts e processamento lógico.
-* **FastAPI**: Framework moderno de alta performance para a construção de APIs RESTful rápidas e leves.
-* **Pydantic**: Validação estrita de tipos de dados nos contratos das requisições (schemas).
-* **Uvicorn**: Servidor ASGI de alta velocidade para rodar a aplicação.
-
-### Front-End
-* **HTML5 & CSS3**: Estruturação visual moderna com design responsivo (Mobile-First) em modo escuro.
-* **JavaScript (Vanilla ES6+)**: Manipulação assíncrona de requisições utilizando a Fetch API para comunicação em tempo real com o servidor back-end sem recarregamento de página.
-
-### Metodologia de Desenvolvimento e Engenharia de IA
-* **Aceleração por IA**: Desenvolvimento ágil focado em engenharia de prompt avançada e arquitetura limpa. Utilização estratégica de IA para otimização lógica, refinamento de segurança e aceleração de entregas de ponta a ponta.
-* **Ambiente de Desenvolvimento**: Projeto concebido, codificado, testado e estruturado inteiramente a partir de um dispositivo móvel, demonstrando adaptabilidade e alta capacidade de resolução técnica autônoma.
+O projeto foi desenhado seguindo os conceitos de **Sistemas Distribuídos e Microsserviços**, simulando o padrão de grandes instituições financeiras (onde sistemas centrais em **Java/Spring Boot** realizam a orquestração de contratos e conversam com microsserviços especializados em **Python** para cálculos de risco).
 
 ---
 
-## ⚙️ Regras de Negócio Implementadas
+## 🎮 Como Testar o Projeto (Demonstração Online)
 
-A API processa cada simulação aplicando três filtros rígidos de aprovação:
-1. **Validação da Entrada**: O sistema exige uma entrada mínima obrigatória de **20%** do valor total do veículo avaliado.
-2. **Cálculo de Juros Compostos**: O saldo restante é financiado aplicando uma taxa de juros simulada de **1.5% ao mês** diluída no número de parcelas escolhido.
-3. **Margem de Consignável (Comprometimento de Renda)**: O valor final da parcela mensal gerada **não pode ultrapassar 30% da renda mensal** informada pelo cliente. Caso ultrapasse, o crédito é automaticamente recusado.
+Para facilitar a avaliação e garantir acessibilidade total, o projeto conta com uma arquitetura híbrida de execução:
+
+### 🔗 Opção 1: Demonstração Direta (GitHub Pages)
+Você pode testar a interface visual e as regras de negócio agora mesmo, diretamente pelo navegador do seu celular ou computador:
+👉 **[CLIQUE AQUI PARA ABRIR O SIMULADOR ONLINE](https://github.io)**
+
+*Nota de Engenharia:* Como o GitHub Pages hospeda apenas arquivos estáticos, o Front-End possui uma **lógica espelho em JavaScript** que assume o processamento das regras de crédito caso o servidor principal em Python esteja offline, garantindo resiliência e funcionamento 100% autônomo da aplicação.
+
+### 💻 Opção 2: Execução do Back-End Completo (GitHub Codespaces)
+Se você for um avaliador técnico e desejar rodar o motor nativo em Python (FastAPI), utilize o ambiente em nuvem oficial embutido no repositório:
+1. Clique no botão: [![Open in GitHub Codespaces](https://shields.io)](https://codespaces.new)
+2. Aguarde a inicialização automática do ambiente (.devcontainer) e das dependências.
+3. No terminal inferior do Codespaces, inicie o servidor:
+   ```bash
+   uvicorn main:app --reload
+   ```
 
 ---
 
-## 📁 Estrutura do Repositório
+## 🛠️ Tecnologias e Camadas do Projeto
+
+### Camada de Inteligência e API (Back-End)
+* **Python**: Processamento central das regras de dados.
+* **FastAPI**: Framework assíncrono de alta performance para a disponibilização dos endpoints RESTful.
+* **Pydantic**: Validação estrita e tipagem dos contratos de entrada de dados (schemas).
+
+### Camada de Apresentação e Simulação Local (Front-End)
+* **HTML5 & CSS3**: Interface gráfica limpa, moderna e responsiva baseada nas paletas suaves das Fintechs atuais.
+* **JavaScript (Vanilla ES6+)**: Consumo assíncrono da API (Fetch API) e motor de contingência local para simular as regras de risco diretamente no cliente.
+
+### Engenharia de Prompt e Desenvolvimento Ágil
+* **Aceleração por IA**: Utilização avançada e estratégica de IA (engenharia de contexto e prompts estruturados) para ganho de eficiência no design lógico e na segurança do código.
+* **Desenvolvimento Mobile-First**: Todo o esqueleto, lógica, testes e deploy do ecossistema foram concebidos de forma autônoma a partir de um dispositivo móvel.
+
+---
+
+## ⚙️ Regras de Negócio Financeiras Implementadas
+
+O motor de análise avalia a proposta recebida através de três critérios rígidos:
+1. **Filtro de Entrada Mínima**: O valor da entrada deve corresponder a, no mínimo, **20%** do valor de tabela do veículo.
+2. **Amortização e Juros Compostos**: O saldo devedor é calculado aplicando uma taxa de juros simulada de **1.5% ao mês** distribuída no prazo de parcelamento selecionado.
+3. **Margem Consignável (Comprometimento de Renda)**: O valor da parcela gerada **não pode ultrapassar o teto de 30% da renda mensal** informada pelo cliente. Caso ultrapasse, o crédito é imediatamente recusado por risco de inadimplência.
+
+---
+
+## 📁 Estrutura Estrutural do Repositório
 
 ```text
 credit-analysis-microservice/
 │
-├── templates/
-│   └── index.html      # Interface gráfica responsiva (Front-End)
+├── .devcontainer/
+│   └── devcontainer.json # Configuração de ambiente automatizado em nuvem (Codespaces)
 │
-├── main.py            # Servidor FastAPI, rotas da API e renderização
-├── requirements.txt   # Dependências estruturais do projeto
-└── README.md          # Documentação técnica do sistema
+├── index.html            # Interface gráfica e motor cliente (Front-End / JS)
+├── main.py               # Servidor FastAPI e rotas de processamento (Back-End)
+├── requirements.txt      # Gerenciador de dependências do Python
+└── README.md             # Documentação técnica de arquitetura
 ```
-
