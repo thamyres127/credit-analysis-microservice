@@ -1,0 +1,11 @@
+{
+  "name": "Python 3 & FastAPI",
+  "image": "://microsoft.com",
+  "forwardPorts":,
+  "postCreateCommand": "pip install -r requirements.txt",
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["main.py", "index.html"]
+    }
+  }
+}
